@@ -1,14 +1,13 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
+import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
 import { useState, useCallback, useMemo } from "react";
 
-// Replace with your deployed program ID
 const PROGRAM_ID = new PublicKey(
   "9BT5z3cnBeTqvFQDdxcC6a7R5ZTN1TroX7u6H6UmLBkQ"
 );
 
-// Inline IDL - this ensures it's always defined
+// Inline IDL 
 const IDL = {
   version: "0.1.0",
   name: "escrow",
@@ -62,7 +61,7 @@ const IDL = {
       },
     },
   ],
-};
+} as Idl;
 
 export interface EscrowAccount {
   publicKey: PublicKey;
