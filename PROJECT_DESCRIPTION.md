@@ -1,79 +1,89 @@
 # Project Description
 
-**Deployed Frontend URL:** [TODO: Link to your deployed frontend]
+**Deployed Frontend URL:** https://escrow-dapp-jade.vercel.app
 
-**Solana Program ID:** [TODO: Your deployed program's public key]
+**Solana Program ID:** 9BT5z3cnBeTqvFQDdxcC6a7R5ZTN1TroX7u6H6UmLBkQ
 
 ## Project Overview
 
 ### Description
-[TODO: Provide a comprehensive description of your dApp. Explain what it does. Be detailed about the core functionality.]
+EscrowDAPP is a secure peer-to-peer escrow service built on Solana that enables trustless SOL transfers between two parties. Users can create escrow accounts where funds are locked until the designated recipient claims them, or the depositor cancels the transaction. Each escrow is uniquely identified and secured using Program Derived Addresses (PDAs), ensuring that only authorized parties can interact with the funds
 
 ### Key Features
-[TODO: List the main features of your dApp. Be specific about what users can do.]
-
-- Feature 1: [Description]
-- Feature 2: [Description]
-- ...
+- **Create Escrow**: Lock SOL in an escrow account for a specific recipient
+- **Claim Funds**: Recipients can claim locked funds from escrows sent to them
+- **Cancel & Refund**: Depositors can cancel unclaimed escrows and receive full refunds
+- **Dual View Dashboard**: Separate views for escrows you've created vs. escrows you can claim
+- **Multiple Escrows**: Support for creating multiple simultaneous escrows with unique IDs
+- **Real-time Updates**: Automatic refresh to display latest escrow states
   
 ### How to Use the dApp
-[TODO: Provide step-by-step instructions for users to interact with your dApp]
 
-1. **Connect Wallet**
-2. **Main Action 1:** [Step-by-step instructions]
-3. **Main Action 2:** [Step-by-step instructions]
-4. ...
+1. **Connect Wallet** Click "Select Wallet" and connect your Phantom or Solflare wallet
+2. **Create Escrow:** Enter the recipient's wallet address and amount in SOL, then click "Create Escrow" and sign the transaction on your wallet
+3. **View Your Escrows:** See two panels:
+"Created by You": Escrows you've deposited 
+"Sent to You": Escrows where you're the recipient
+4. **Claim as Recipient:** In the "Sent to You" panel, click "Claim Funds" to receive the SOL
+5. **Cancel as Depositor:** In the "Created by You" panel, click "Cancel & Refund" to get your SOL back
 
 ## Program Architecture
-[TODO: Describe your Solana program's architecture. Explain the main instructions, account structures, and data flow.]
+The Escrow dApp implements a secure three-instruction architecture with PDA-based escrow accounts that hold funds until resolution. The program uses Solana's native account model to create isolated escrow storage, ensuring that funds can only be moved by authorized parties through validated instruction calls.
 
 ### PDA Usage
-[TODO: Explain how you implemented Program Derived Addresses (PDAs) in your project. What seeds do you use and why?]
+The program leverages Program Derived Addresses to create deterministic, secure escrow accounts that can hold SOL and verify authorization without requiring private keys.
 
 **PDAs Used:**
-- PDA 1: [Purpose and description]
-- PDA 2: [Purpose and description]
+- **Escrow PDA**: Derived from seeds ["escrow", depositor_pubkey, escrow_id_u64] which ensures each escrow has a unique, deterministic address that can only be controlled by program instructions with proper authorization checks
 
 ### Program Instructions
-[TODO: List and describe all the instructions in your Solana program]
 
 **Instructions Implemented:**
-- Instruction 1: [Description of what it does]
-- Instruction 2: [Description of what it does]
-- ...
+- **Initialize**: Creates a new escrow account, transfers SOL from depositor to the escrow PDA, and stores depositor/recipient information
+- **Claim**: Allows only the designated recipient to claim the funds, transfers SOL from escrow to recipient, and closes the escrow account and rent returns to depositor
+- **Cancel**: Allows only the original depositor to cancel the escrow, refunds SOL to depositor, and closes the escrow account
 
 ### Account Structure
-[TODO: Describe your main account structures and their purposes]
 
 ```rust
-// Example account structure (replace with your actual structs)
 #[account]
-pub struct YourAccountName {
-    // Describe each field
+pub struct Escrow {
+    pub depositor: Pubkey,    // The wallet that created and funded the escrow
+    pub recipient: Pubkey,    // The wallet authorized to claim the funds
+    pub amount: u64,          // Amount of lamports held in escrow
+    pub bump: u8,             // PDA bump seed for signing
+    pub escrow_id: u64,       // Unique identifier for this escrow
+    pub created_at: i64,      // Unix timestamp when escrow was created
 }
 ```
 
 ## Testing
 
 ### Test Coverage
-[TODO: Describe your testing approach and what scenarios you covered]
+Comprehensive test suite with 11 test cases covering all three instructions, successful operations, authorization checks, edge cases, and error conditions to ensure program security and fund safety.
 
 **Happy Path Tests:**
-- Test 1: [Description]
-- Test 2: [Description]
-- ...
+- **Initialize Escrow**: Successfully creates escrow, transfers SOL, verifies account data and balance changes
+- **Claim Escrow**: Recipient successfully claims funds, receives correct amount, escrow account closed
+- **Cancel Escrow**: Depositor successfully cancels, receives refund, escrow account closed
+- **Multiple Escrows**: Same user can create multiple escrows with different IDs and recipients
 
 **Unhappy Path Tests:**
-- Test 1: [Description of error scenario]
-- Test 2: [Description of error scenario]
-- ...
+- **Zero Amount**: Fails when trying to create escrow with 0 SOL
+- **Duplicate Escrow ID**: Fails when trying to create escrow with existing ID
+- **Unauthorized Claim**: Fails when wrong person tries to claim
+- **Double Claim**: Fails when trying to claim already-claimed escrow
+- **Unauthorized Cancel**: Fails when wrong person tries to cancel
+- **Double Cancel**: Fails when trying to cancel already-cancelled escrow
+- **Claim after Cancel**: Recipient cannot claim after depositor cancels
 
 ### Running Tests
 ```bash
-# Commands to run your tests
-anchor test
+cd anchor_project/escrow
+yarn install              # install dependencies
+anchor test               # run all tests 
 ```
 
 ### Additional Notes for Evaluators
 
-[TODO: Add any specific notes or context that would help evaluators understand your project better]
+This project was an incredible learning experience in building contracts on Solana, I have always wanted to build an escrow contract and i am so glad i finally did, i have a few ideas around escrow platforms and i plan to build on this in the future
